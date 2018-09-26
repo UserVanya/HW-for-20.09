@@ -20,6 +20,10 @@ void strprint(char* a, char* b)
 	}
 	printf ("\n");
 }
+
+// Называйте ф-и в одном стиле: StringIntPrint, StrPrint, 
+// В названии ф-й должен фигурировать какой-то глагол: printAlphabet, например.
+
 void alphavit (char* a, int n)
 {
 	for (int i = 0; i < n; ++i)
