@@ -7,11 +7,11 @@ char* ScanStr(char* a, int buff)
 {
     int i = 1;
     fgets(a, buff, stdin);
-    while (!((a[strlen(a)-1] == 0) ^ (a[strlen(a)-1] == '\n')))
+    while (!((a[strlen(a) - 1] == 0) ^ (a[strlen(a) - 1] == '\n')))
     {
         ++i;
         a = (char*) realloc (a, (1024 * i) - 1);
-        fgets(&a[(buff * (i-1)) - 1], buff, stdin);
+        fgets(&a[(buff * (i - 1)) - 1], buff, stdin);
     }
     return a;
 }
