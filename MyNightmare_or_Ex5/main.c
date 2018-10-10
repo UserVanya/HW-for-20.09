@@ -4,6 +4,10 @@
 #include <sys/types.h>
 #include <string.h>
 #include <sys/wait.h>
+
+// FIXIT: программа без fork'ов работать не сможет + предполагается, что ровно 4 строки считаются.
+// Давайте на семинаре обсудим ваше решение.
+
 void Split (char* string, char* delimeters, char*** tokens, int* tokensCount)
 {
     *tokensCount = 0;
