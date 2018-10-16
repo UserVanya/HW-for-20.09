@@ -3,6 +3,6 @@
 
 int main()
 {
-    PrintToCommandLine("/home/ivan/Programming/main/input");
+    PrintToCommandLine("/home/ivan/Programming/MIPT-Programming/main/input");
     return 0;
 }
