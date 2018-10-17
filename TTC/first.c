@@ -18,7 +18,7 @@ void OpenInit(int fd)
 {
     if(fd < 0)
     {
-        printf("Can\'t open FIFO\n");
+        printf("Can\'t open FIFO for writting\n");
         exit(-1);
     }
 }
@@ -37,8 +37,6 @@ void WriteInit(size_t size, char* string)
          exit(-1);
     }
 }
-
-
 void ReadInit(size_t size)
 {
     if(size < 0)
@@ -73,36 +71,54 @@ char* ScanStr(char* a, int buff, FILE* f)
 
     return a;
 }
+void ClearString(char* string, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+	string[i] = '\0';
+    }
+}
 
 void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 {
-    OpenInit(outputFD = open(fifoPath, O_WRONLY));
+    int i = 0;
     char* outputString = (char*) calloc(buff, sizeof(char));
-    outputString = ScanStr(outputString, buff, f);
-    WriteInit(write(outputFD, outputString, strlen(outputString)), outputString);
+    while(strcmp("exit\n", outputString) != 0)
+    {
+        ClearString(outputString, strlen(outputString));
+        OpenInit(outputFD = open(fifoPath, O_WRONLY));
+        outputString = ScanStr(outputString, buff, f);
+        WriteInit(write(outputFD, outputString, strlen(outputString)), outputString);
+        CloseInit(close(outputFD));
+    }
     free(outputString);
-    CloseInit(close(outputFD));
 }
+
+
 void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
 {
     char* inputString = (char*) calloc(buff, sizeof(char));
-    OpenInit(inputFD = open(fifoPath, O_RDONLY));
-    ReadInit(read(inputFD, inputString, buff));
-    fprintf(f, "1:%s", inputString);
+    while (strcmp("exit\n", inputString) != 0)
+    {
+        ClearString(inputString, strlen(inputString));
+        OpenInit(inputFD = open(fifoPath, O_RDONLY));
+        ReadInit(read(inputFD, inputString, buff));
+        fprintf(f, "2:%s", inputString);    
+        CloseInit(close(inputFD));    
+    }
     free(inputString);
-    CloseInit(close(inputFD));
 }
 int main()
 {
-    int buff = 128;
-    int inputFD, outputFD;
+    int buff = 271;
+    int outputFD, inputFD;
     (void)umask(0);
-    printf("second:\n");
-    //FIFOInit(mknod("first.fifo", S_IFIFO | 0666, 0));
-    //FIFOInit(mknod("second.fifo", S_IFIFO | 0666, 0));
-    while(1)
-    {
-	FromPipe(inputFD, "first.fifo", buff, stdout);
-	IntoPipe(outputFD, "second.fifo", buff, stdin);
-    }
+    //FIFOInit(mknod("first.fifo", S_IFIFO | 0777, 0));
+    //FIFOInit(mknod("second.fifo", S_IFIFO | 0777, 0));
+    printf("first:\n");
+    pid_t pid;
+    pid = fork();
+    if (pid == 0) FromPipe(inputFD, "first.fifo", buff, stdout);    
+    else IntoPipe(outputFD, "second.fifo", buff, stdin);
 }
+
