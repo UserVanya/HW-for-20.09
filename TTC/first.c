@@ -9,11 +9,14 @@
 // FIXIT: 1) код first.c и second.c в значительной мере дублируют друг друга
 // Достаточно написать одну программу, которая, например, считывает параметр командной строки,
 // и в зависимости от него решает первый это или второй собеседник.
+// Опять же, да, но разве есть что-то глубокое, почему нужно использовать именно одну программу, а не две?
+// Я реализовал ее так...
 
 
 
 // Ф-и ниже делают проверки только. Они не инициализируют, открывают, закрывают и т.п.
-void FIFOInit(int result)
+// Я неправильно понимал смысл слова "инициализация"
+void FIFOCheck(int result)
 {
     if(result < 0)
     {
@@ -21,7 +24,7 @@ void FIFOInit(int result)
         exit(-1);
     }
 }
-void OpenInit(int fd)
+void OpenCheck(int fd)
 {
     if(fd < 0)
     {
@@ -29,14 +32,14 @@ void OpenInit(int fd)
         exit(-1);
     }
 }
-void CloseInit(int result)
+void CloseCheck(int result)
 {
     if(result)
     {
          printf("Can\'t close file\n");
     }
 }
-void WriteInit(size_t size, char* string)
+void WriteCheck(size_t size, char* string)
 {
     if((int)size != (int)strlen(string))
     {
@@ -44,7 +47,7 @@ void WriteInit(size_t size, char* string)
          exit(-1);
     }
 }
-void ReadInit(size_t size)
+void ReadCheck(size_t size)
 {
     if(size < 0)
     {
@@ -96,10 +99,10 @@ void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 	// FIXIT: вы на каждое сообщение закрываете и открываете FIFO.
 	// Открыть достаточно один раз до цикла
 	// Вы же в прошлых упражнениях, где читали строки из файла, не переоткрывали его после каждой строки.
-        OpenInit(outputFD = open(fifoPath, O_WRONLY));
+        OpenCheck(outputFD = open(fifoPath, O_WRONLY));
         outputString = ScanStr(outputString, buff, f);
-        WriteInit(write(outputFD, outputString, strlen(outputString)), outputString);
-        CloseInit(close(outputFD));
+        WriteCheck(write(outputFD, outputString, strlen(outputString)), outputString);
+        CloseCheck(close(outputFD));
     }
     free(outputString);
 }
@@ -111,11 +114,11 @@ void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
     while (strcmp("exit\n", inputString) != 0)
     {
         ClearString(inputString, strlen(inputString));
-        OpenInit(inputFD = open(fifoPath, O_RDONLY));
+        OpenCheck(inputFD = open(fifoPath, O_RDONLY));
 	// вот здесь вы можете проверить, что если read вернул 0, то выйти из цикла while
-        ReadInit(read(inputFD, inputString, buff));
+        ReadCheck(read(inputFD, inputString, buff));
         fprintf(f, "2:%s", inputString);    
-        CloseInit(close(inputFD));    
+        CloseCheck(close(inputFD));    
     }
     free(inputString);
 }
@@ -126,8 +129,9 @@ int main()
     (void)umask(0);
     // FIXIT: закомментировав строки ниже вы неявно предполагаете, что оба файла уже созданы.
     // Давайте без этого предположения обойдемся
-    //FIFOInit(mknod("first.fifo", S_IFIFO | 0777, 0));
-    //FIFOInit(mknod("second.fifo", S_IFIFO | 0777, 0));
+    // Ок...
+    FIFOCheck(mknod("first.fifo", S_IFIFO | 0777, 0));
+    FIFOCheck(mknod("second.fifo", S_IFIFO | 0777, 0));
     printf("first:\n");
     pid_t pid;
     pid = fork();
