@@ -38,6 +38,8 @@ void SortTokens(char*** tokens, int numOfLines, int* tokensCount)
         tokensCount[i] = j;
     }
 }
+
+// Лучше так не называть ф-и, а давать более конкретные названия
 void MainFunc (char *** tokens, int numOfLines, int timeout)
 {
     pid_t* pid = (pid_t*) calloc (numOfLines + 1, sizeof(pid_t));
@@ -49,12 +51,14 @@ void MainFunc (char *** tokens, int numOfLines, int timeout)
             sleep(atoi(tokens[i][0]));
             execvp (tokens[i][1], &(tokens[i][1]));
             printf("execvp failed\n");
+            // здесь лучше дописать exit, т.к. если команду не удалось запустить, то после уже два процесса будут бежать по списку команд и запускать оставшиеся
         }
     }
     for(int i = 0; i < numOfLines; i++)
     {
         if (i == 0) sleep(atoi(tokens[i][0]) + timeout);
         else sleep(atoi(tokens[i][0]) - atoi(tokens[i - 1][0]));
+        // kill(..., 1) для 1 есть именованная константа SIGHUP       
         if(kill (pid[i], 1)) printf("process with id %d: runtime error", pid[i]);
     }
     free(pid);
