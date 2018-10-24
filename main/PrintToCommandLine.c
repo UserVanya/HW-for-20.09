@@ -40,7 +40,7 @@ void SortTokens(char*** tokens, int numOfLines, int* tokensCount)
 }
 
 // Лучше так не называть ф-и, а давать более конкретные названия
-void MainFunc (char *** tokens, int numOfLines, int timeout)
+void ForkAndExec (char *** tokens, int numOfLines, int timeout)
 {
     pid_t* pid = (pid_t*) calloc (numOfLines + 1, sizeof(pid_t));
     for (int i = 0; i < numOfLines; ++i)
@@ -83,7 +83,7 @@ void PrintToCommandLine(char* path)
     }
 
     SortTokens (tokens, numOfLines, tokensCount);
-    MainFunc(tokens, numOfLines, timeout);
+    ForkAndExec(tokens, numOfLines, timeout);
 
     for(int i = 0; i < numOfLines; i++) FreeStrArr(tokens[i], tokensCount[i]);
     free(tokens);
