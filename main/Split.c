@@ -3,20 +3,10 @@
 #include <string.h>
 void Split(char* string, char* delimeters, char*** tokens, int* tokensCountPtr)
 {
-    if(string && delimeters && tokens && tokensCount)
+    if(string && delimeters && tokens && tokensCountPtr)
     {
-        // FIXIT: 1) tokensCount[0], tokens[0] сбивают с толку. мы обсуждали, что можно сделать так:
-        //  void Split(... , int* tokensCountPtr) {
         int tokensCount = 0;
-        // ...
-        *tokensCountPtr = tokensCount;
-        // аналогично для tokens
-        // 2) на самом деле вы делаете излишние манипуляции с памятью. прочитайте, пожалуйста, что именно делает
-        // strtok ... кажется выделять память под temp не нужно
-        // у вас под строку (*tokens)[0] память не была выделена, но вы туда что-то копируете strcpy(tokens[0][tokensCount[0]], temp); (до цикла while)
-        // зачем делать реаллоки в цикле, если память выделяется 1 раз для каждого нового токена у вас.
-        // Но все же лучший выход прочитать внимательно про strtok и убрать все ненужные выделения памяти
-        char* temp = (char*) calloc (strlen(string), sizeof(char));
+        char* temp;
         temp = strtok(string, delimeters);
         strcpy((*tokens)[tokensCount], temp);
         while(temp)
@@ -29,8 +19,6 @@ void Split(char* string, char* delimeters, char*** tokens, int* tokensCountPtr)
         }
         (*tokens) = realloc ((*tokens), (tokensCount + 1) * sizeof(char*));
         *tokensCountPtr = tokensCount;
-        free(temp);
     }
     else printf("\n string can`t  be splitted");
 }
-
