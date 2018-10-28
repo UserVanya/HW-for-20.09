@@ -39,7 +39,6 @@ void SortTokens(char*** tokens, int numOfLines, int* tokensCount)
     }
 }
 
-// Лучше так не называть ф-и, а давать более конкретные названия
 void ForkAndExec (char *** tokens, int numOfLines, int timeout)
 {
     pid_t* pid = (pid_t*) calloc (numOfLines + 1, sizeof(pid_t));
@@ -51,7 +50,7 @@ void ForkAndExec (char *** tokens, int numOfLines, int timeout)
             sleep(atoi(tokens[i][0]));
             execvp (tokens[i][1], &(tokens[i][1]));
             printf("execvp failed\n");
-            // здесь лучше дописать exit, т.к. если команду не удалось запустить, то после уже два процесса будут бежать по списку команд и запускать оставшиеся
+            exit(-1);
         }
     }
     for(int i = 0; i < numOfLines; i++)
