@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+
+// FIXIT: 1) не следует использовать транслитерацию. 
+// 2) называйте структуры в одном стиле for_one_thread -> ForOneThread
+// а дальше уже typedef struct ForOneThread ForOneThread;
+// 3) стоит в комментарии указать результаты замеров ускорения. Нужно измерять wall-clock time
+// https://stackoverflow.com/questions/17432502/how-can-i-measure-cpu-time-and-wall-clock-time-on-both-linux-windows
+
 #define MNOGO 100000000
 struct for_one_thread
 {
@@ -12,6 +19,7 @@ struct for_one_thread
     double avarageValue;
     double dispersia;
 };
+
 void ThreadInit (int result)
 {
     if(result != 0)
@@ -21,8 +29,12 @@ void ThreadInit (int result)
     }
 }
 typedef struct for_one_thread ForOneThread;
+
 void* AvarageValue(void* dummy)
 {
+    // FIXIT: можно первой строкой написать ForOneThread* oneThreadTask = (ForOneThread*)dummy;
+    // а дальше не кастовать везде dummy к нужному типу
+    
     int amountOfElements = (int)((((ForOneThread*)dummy)->end) - (((ForOneThread*)dummy)->begin));
     ((ForOneThread*)dummy)->summ = 0;
     for(int i = 0; i < amountOfElements; i++) ((ForOneThread*)dummy)->summ = ((ForOneThread*)dummy)->summ + (((ForOneThread*)dummy)->begin)[i];
@@ -44,6 +56,8 @@ double CalculateDispersia(int numOfThreads, ForOneThread* thidStruct, int numFor
 {
     int begin = 0, end = 0;
     double temp = 0;
+    
+    // FIXIT: следующий ниже цикл дублируется дважды в коде. его стоит вынести в отдельную ф-ю
     for (int i = 0; i < numOfThreads; i++)
     {
         if (i != numOfThreads) end = end + numForOneThread;
@@ -73,6 +87,8 @@ double CalculateAvarageValue(int numOfThreads, ForOneThread* thidStruct, int num
         begin = begin + numForOneThread;
         ThreadInit(pthread_create(&(thid[i]), (pthread_attr_t*)NULL, AvarageValue, (void*)(&(thidStruct[i]))));
     }
+    
+    // FIXIT: ничего не препятствует назвать переменную просто sum. так и стоит поступить.
     int summ = 0;
     for (int i = 0; i < numOfThreads; i++)
     {
