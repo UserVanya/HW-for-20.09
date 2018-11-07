@@ -13,6 +13,8 @@
 // Я реализовал ее так...
 // RE: Можно было бы и две оставить, если бы весь дублирующийся код вынесли в отдельный (3й) файл. Дублирование кода - потенциальный
 // источник ошибок, т.к. при любом изменении требований нужно поменять два, а не одно место в коде.
+// Тут программа по другому не позволит сделать, либо писать if в этом коде, либо две программы в отедльности, что в первом,
+// что во втором случае нужно менять два, а не одно место в коде.
 
 void FIFOCheck(int result)
 {
@@ -80,30 +82,21 @@ char* ScanStr(char* a, int buff, FILE* f)
     return a;
 }
 
-// Ф-я http://www.cplusplus.com/reference/cstring/memset/ делает ровно то же самое. Лучше использовать готовое.
-void ClearString(char* string, int n)
-{
-    for (int i = 0; i < n; i++)
-    {
-	string[i] = '\0';
-    }
-}
-
 void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 {
     int i = 0;
     char* outputString = (char*) calloc(buff, sizeof(char));
+    OpenCheck(outputFD = open(fifoPath, O_WRONLY));
     while(strcmp("exit\n", outputString) != 0)
     {
-        ClearString(outputString, strlen(outputString));
+        memset(outputString, '\0', strlen(outputString));
 	// FIXIT: вы на каждое сообщение закрываете и открываете FIFO.
 	// Открыть достаточно один раз до цикла
-	// Вы же в прошлых упражнениях, где читали строки из файла, не переоткрывали его после каждой строки.
-        OpenCheck(outputFD = open(fifoPath, O_WRONLY));
+	// Вы же в прошлых упражнениях, где читали строки из файла, не переоткрывали его после каждой строки
         outputString = ScanStr(outputString, buff, f);
         WriteCheck(write(outputFD, outputString, strlen(outputString)), outputString);
-        CloseCheck(close(outputFD));
     }
+    CloseCheck(close(outputFD));
     free(outputString);
 }
 
@@ -113,9 +106,10 @@ void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
     char* inputString = (char*) calloc(buff, sizeof(char));
     while (strcmp("exit\n", inputString) != 0)
     {
-        ClearString(inputString, strlen(inputString));
+        memset(inputString, '\0', strlen(inputString));
         OpenCheck(inputFD = open(fifoPath, O_RDONLY));
 	// вот здесь вы можете проверить, что если read вернул 0, то выйти из цикла while
+	// У меня по другому реализовано
         ReadCheck(read(inputFD, inputString, buff));
         fprintf(f, "2:%s", inputString);    
         CloseCheck(close(inputFD));    
