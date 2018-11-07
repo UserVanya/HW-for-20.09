@@ -4,18 +4,24 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-// FIXIT: 1) не следует использовать транслитерацию. 
+// FIXIT:
 // 2) называйте структуры в одном стиле for_one_thread -> ForOneThread
+// Re: Я вообщем-то так и делал, тут всего одна структура. Если вы имеете ввиду общий стиль кода, т.е. я должен называть 
+// структуры в том же стиле что и функции, то ок. Но это не понятно из контекста, логично делать такое же разделение помоему, ну
+// т.е. условно переменные называть в одном стиле, функции в другом и соответственно структуры в третьем, уточните пожалуйста.
+// Вообще я согласен, пока поменяю так, как думаю правильнее...
 // а дальше уже typedef struct ForOneThread ForOneThread;
 // 3) стоит в комментарии указать результаты замеров ускорения. Нужно измерять wall-clock time
 // https://stackoverflow.com/questions/17432502/how-can-i-measure-cpu-time-and-wall-clock-time-on-both-linux-windows
+// Я это сделал, и с вами об этом говорил, реализацию с замерами времени не вижу смысла сюда заносить, я могу показать 
+// получившийся график
 
-#define MNOGO 100000000
+#define AMOUNT_OF_ELEMENTS 100000000
 struct for_one_thread
 {
     int* begin;
     int* end;
-    int summ;
+    int sum;
     double avarageValue;
     double dispersia;
 };
@@ -28,40 +34,43 @@ void ThreadInit (int result)
         exit(-1);
     }
 }
-typedef struct for_one_thread ForOneThread;
+typedef struct for_one_thread for_one_thread;
 
 void* AvarageValue(void* dummy)
 {
-    // FIXIT: можно первой строкой написать ForOneThread* oneThreadTask = (ForOneThread*)dummy;
+    // FIXIT: можно первой строкой написать 
+    * oneThreadTask = (for_one_thread*)dummy;
     // а дальше не кастовать везде dummy к нужному типу
+    //????
     
-    int amountOfElements = (int)((((ForOneThread*)dummy)->end) - (((ForOneThread*)dummy)->begin));
-    ((ForOneThread*)dummy)->summ = 0;
-    for(int i = 0; i < amountOfElements; i++) ((ForOneThread*)dummy)->summ = ((ForOneThread*)dummy)->summ + (((ForOneThread*)dummy)->begin)[i];
+    int amountOfElements = (int)((((for_one_thread*)dummy)->end) - (((for_one_thread*)dummy)->begin));
+    ((for_one_thread*)dummy)->sum = 0;
+    for(int i = 0; i < amountOfElements; i++) ((for_one_thread*)dummy)->sum = ((for_one_thread*)dummy)->sum + (((for_one_thread*)dummy)->begin)[i];
     return NULL;
 }
 void* Dispersia(void* dummy)
 {
     double temp = 0;
-    int amountOfElements = (int)((((ForOneThread*)dummy)->end) - (((ForOneThread*)dummy)->begin));
+    int amountOfElements = (int)((((for_one_thread*)dummy)->end) - (((for_one_thread*)dummy)->begin));
     for (int i = 0; i < amountOfElements; i++)
     {
-        double deviation = ((((ForOneThread*)dummy)->begin)[i] - ((ForOneThread*)dummy)->avarageValue); //deviation - отклонение
+        double deviation = ((((for_one_thread*)dummy)->begin)[i] - ((for_one_thread*)dummy)->avarageValue); //deviation - отклонение
         temp = temp + deviation * deviation;
     }
-    ((ForOneThread*)dummy)->dispersia = temp;
+    ((for_one_thread*)dummy)->dispersia = temp;
     return NULL;
 }
-double CalculateDispersia(int numOfThreads, ForOneThread* thidStruct, int numForOneThread, int* mass, pthread_t* thid)
+double CalculateDispersia(int numOfThreads, for_one_thread* thidStruct, int numForOneThread, int* mass, pthread_t* thid)
 {
     int begin = 0, end = 0;
     double temp = 0;
     
     // FIXIT: следующий ниже цикл дублируется дважды в коде. его стоит вынести в отдельную ф-ю
+    // Честно, сам думал об этом, но я не помню как функции передавать в функцию, просто как видите там в конце фора с этим трабл.
     for (int i = 0; i < numOfThreads; i++)
     {
         if (i != numOfThreads) end = end + numForOneThread;
-        else end = MNOGO - 1;
+        else end = AMOUNT_OF_ELEMENTS - 1;
         thidStruct[i].begin = &(mass[begin]);
         thidStruct[i].end = &(mass[end - 1]);
         begin = begin + numForOneThread;
@@ -72,49 +81,49 @@ double CalculateDispersia(int numOfThreads, ForOneThread* thidStruct, int numFor
         pthread_join(thid[i], (void **)NULL);
         temp = temp + thidStruct[i].dispersia;
     }
-    return (temp / (double)MNOGO);
+    return (temp / (double)AMOUNT_OF_ELEMENTS);
 }
-double CalculateAvarageValue(int numOfThreads, ForOneThread* thidStruct, int numForOneThread, int* mass, pthread_t* thid)
+double CalculateAvarageValue(int numOfThreads, for_one_thread* thidStruct, int numForOneThread, int* mass, pthread_t* thid)
 {
     double avarageValue;
     int begin = 0, end = 0;
     for (int i = 0; i < numOfThreads; i++)
     {
         if (i != numOfThreads) end = end + numForOneThread;
-        else end = MNOGO - 1;
+        else end = AMOUNT_OF_ELEMENTS - 1;
         thidStruct[i].begin = &(mass[begin]);
         thidStruct[i].end = &(mass[end - 1]);
         begin = begin + numForOneThread;
         ThreadInit(pthread_create(&(thid[i]), (pthread_attr_t*)NULL, AvarageValue, (void*)(&(thidStruct[i]))));
     }
     
-    // FIXIT: ничего не препятствует назвать переменную просто sum. так и стоит поступить.
-    int summ = 0;
+    
+    int sum = 0;
     for (int i = 0; i < numOfThreads; i++)
     {
         pthread_join(thid[i], (void **)NULL);
-        summ = summ + thidStruct[i].summ;
+        sum = sum + thidStruct[i].sum;
     }
-    avarageValue = (double)summ / MNOGO;
+    avarageValue = (double)sum / AMOUNT_OF_ELEMENTS;
     for (int i = 0; i < numOfThreads; i++) thidStruct[i].avarageValue = avarageValue;
     return avarageValue;
 }
 int main()
 {
-    int * mass = (int*) malloc(MNOGO * sizeof(int));
+    int * mass = (int*) malloc(AMOUNT_OF_ELEMENTS * sizeof(int));
     int numOfThreads;
     scanf("%d", &numOfThreads);
     int numForOneThread;
 
 
-    ForOneThread* thidStruct = (ForOneThread*) calloc (numOfThreads, sizeof(ForOneThread));
+    for_one_thread* thidStruct = (for_one_thread*) calloc (numOfThreads, sizeof(for_one_thread));
     pthread_t* thid = (pthread_t*) calloc(numOfThreads, sizeof(pthread_t));
     //randomly fill the array
-    for (int i = 0; i < MNOGO; i++)
+    for (int i = 0; i < AMOUNT_OF_ELEMENTS; i++)
     {
         mass[i] = rand()%2000;
     }
-    numForOneThread = MNOGO / numOfThreads;
+    numForOneThread = AMOUNT_OF_ELEMENTS / numOfThreads;
     //Let`s go:)
 
     double avarageValue;
