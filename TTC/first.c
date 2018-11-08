@@ -104,16 +104,16 @@ void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
 {
     char* inputString = (char*) calloc(buff, sizeof(char));
+    OpenCheck(inputFD = open(fifoPath, O_RDONLY));
     while (strcmp("exit\n", inputString) != 0)
     {
         memset(inputString, '\0', strlen(inputString));
-        OpenCheck(inputFD = open(fifoPath, O_RDONLY));
 	// вот здесь вы можете проверить, что если read вернул 0, то выйти из цикла while
 	// У меня по другому реализовано
         ReadCheck(read(inputFD, inputString, buff));
-        fprintf(f, "2:%s", inputString);    
-        CloseCheck(close(inputFD));    
+        fprintf(f, "2:%s", inputString);       
     }
+    CloseCheck(close(inputFD));
     free(inputString);
 }
 int main()
