@@ -17,6 +17,10 @@
 // получившийся график
 
 #define AMOUNT_OF_ELEMENTS 100000000
+
+// Если вы хотите называть структуры именно в таком стиле, то все ф-и надо называть в том же: thread_init
+// Вы же сами на семинаре говорили, что стиль ForOneThread, ThreadInit и т.п. вам больше нравится и вы все под него переделаете.
+// Уточнил :)
 struct for_one_thread
 {
     int* begin;
@@ -39,9 +43,11 @@ typedef struct for_one_thread for_one_thread;
 void* AvarageValue(void* dummy)
 {
     // FIXIT: можно первой строкой написать 
-    * oneThreadTask = (for_one_thread*)dummy;
+    // for_one_thread* oneThreadTask = (for_one_thread*)dummy;
+    // int amountOfElements = (int)(oneThreadTask->end - oneThreadTask->begin);
     // а дальше не кастовать везде dummy к нужному типу
     //????
+    // Re: см. пример использования выше
     
     int amountOfElements = (int)((((for_one_thread*)dummy)->end) - (((for_one_thread*)dummy)->begin));
     ((for_one_thread*)dummy)->sum = 0;
@@ -67,6 +73,8 @@ double CalculateDispersia(int numOfThreads, for_one_thread* thidStruct, int numF
     
     // FIXIT: следующий ниже цикл дублируется дважды в коде. его стоит вынести в отдельную ф-ю
     // Честно, сам думал об этом, но я не помню как функции передавать в функцию, просто как видите там в конце фора с этим трабл.
+    // Re: Давайте на семинаре покажу, как это делается. Можете сами заранее посмотреть презентацию про потоки - 
+    // там в первой части было упражнение, где писали свою ф-ю сортировки и в качестве параметра передавали функцию-компаратор.
     for (int i = 0; i < numOfThreads; i++)
     {
         if (i != numOfThreads) end = end + numForOneThread;
