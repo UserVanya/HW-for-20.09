@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include<string.h>
+#include <string.h>
+#define COINCIDE 0
 
 void FIFOCheck(int result)
 {
@@ -41,8 +42,8 @@ void ReadCheck(size_t size)
 {
     if(size < 0)
     {
-       printf("Can\'t read string from FIFO\n");
-       exit(-1);
+    printf("Can\'t read string from FIFO\n");
+    exit(-1);
     }
 }
 char* ScanStr(char* a, int buff, FILE* f)
@@ -66,7 +67,6 @@ char* ScanStr(char* a, int buff, FILE* f)
     }
 
     // allocating exact memory block
-
     a =(char*) realloc(a, strlen(a) * sizeof(char));
 
     return a;
@@ -74,10 +74,9 @@ char* ScanStr(char* a, int buff, FILE* f)
 
 void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 {
-    int i = 0;
     char* outputString = (char*) calloc(buff, sizeof(char));
     OpenCheck(outputFD = open(fifoPath, O_WRONLY));
-    while(strcmp("exit\n", outputString) != 0)
+    while(strcmp("exit\n", outputString) != COINCIDE)
     {
         memset(outputString, '\0', strlen(outputString));
         outputString = ScanStr(outputString, buff, f);
@@ -88,17 +87,15 @@ void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
 }
 
 
-void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
+void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f, int inputConsole)
 {
     char* inputString = (char*) calloc(buff, sizeof(char));
     OpenCheck(inputFD = open(fifoPath, O_RDONLY));
-    while (strcmp("exit\n", inputString) != 0)
+    while (strcmp("exit\n", inputString) != COINCIDE)
     {
         memset(inputString, '\0', strlen(inputString));
-	// вот здесь вы можете проверить, что если read вернул 0, то выйти из цикла while
-	// У меня по другому реализовано
         ReadCheck(read(inputFD, inputString, buff));
-        fprintf(f, "2:%s", inputString);       
+        fprintf(f, "%d:%s", inputConsole, inputString);
     }
     CloseCheck(close(inputFD));
     free(inputString);
@@ -106,14 +103,27 @@ void FromPipe(int inputFD, char* fifoPath, int buff, FILE* f)
 int main()
 {
     int buff = 271;
-    int outputFD, inputFD;
+    int outputFD = 0, inputFD = 0;
     (void)umask(0);
     FIFOCheck(mknod("first.fifo", S_IFIFO | 0777, 0));
     FIFOCheck(mknod("second.fifo", S_IFIFO | 0777, 0));
-    printf("first:\n");
-    pid_t pid;
-    pid = fork();
-    if (pid == 0) FromPipe(inputFD, "first.fifo", buff, stdout);    
-    else IntoPipe(outputFD, "second.fifo", buff, stdin);
+    int consoleNumber;
+    printf("Enter the number of console:");
+    scanf("%d",&consoleNumber);
+    if (consoleNumber == 1)
+    {
+        printf("first:\n");
+        pid_t pid;
+        pid = fork();
+        if (pid == 0) FromPipe(inputFD, "first.fifo", buff, stdout, 2);
+        else IntoPipe(outputFD, "second.fifo", buff, stdin);
+    }
+    if (consoleNumber == 2)
+    {
+        printf("second:\n");
+        pid_t pid;
+        pid = fork();
+        if (pid == 0) FromPipe(inputFD, "second.fifo", buff, stdout, 1);
+        else IntoPipe(outputFD, "first.fifo", buff, stdin);
+    }
 }
-
