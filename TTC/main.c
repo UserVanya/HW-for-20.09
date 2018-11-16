@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define COINCIDE 0
+//проблема осталась
 
 void FIFOCheck(int result)
 {
