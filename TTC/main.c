@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #define COINCIDE 0
-//проблема осталась
 
 void FIFOCheck(int result)
 {
@@ -80,7 +79,7 @@ void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
     while(strcmp("exit\n", outputString) != COINCIDE)
     {
         memset(outputString, '\0', strlen(outputString));
-        outputString = ScanStr(outputString, buff, f);
+        outputString = fgets(outputString, buff, f);
         WriteCheck(write(outputFD, outputString, strlen(outputString)), outputString);
     }
     CloseCheck(close(outputFD));
@@ -106,8 +105,8 @@ int main()
     int buff = 271;
     int outputFD = 0, inputFD = 0;
     (void)umask(0);
-    FIFOCheck(mknod("first.fifo", S_IFIFO | 0777, 0));
-    FIFOCheck(mknod("second.fifo", S_IFIFO | 0777, 0));
+    //FIFOCheck(mknod("first.fifo", S_IFIFO | 0777, 0));
+    //FIFOCheck(mknod("second.fifo", S_IFIFO | 0777, 0));
     int consoleNumber;
     printf("Enter the number of console:");
     scanf("%d",&consoleNumber);
@@ -124,7 +123,7 @@ int main()
         printf("second:\n");
         pid_t pid;
         pid = fork();
-        if (pid == 0) FromPipe(inputFD, "second.fifo", buff, stdout, 1);
-        else IntoPipe(outputFD, "first.fifo", buff, stdin);
+        if (pid == 0) IntoPipe(outputFD, "first.fifo", buff, stdin);
+        else FromPipe(inputFD, "second.fifo", buff, stdout, 1);
     }
 }
