@@ -79,7 +79,7 @@ void IntoPipe(int outputFD, char* fifoPath, int buff, FILE* f)
     while(strcmp("exit\n", outputString) != COINCIDE)
     {
         memset(outputString, '\0', strlen(outputString));
-        outputString = fgets(outputString, buff, f);
+        outputString = ScanStr(outputString, buff, f);
         WriteCheck(write(outputFD, outputString, strlen(outputString)), outputString);
     }
     CloseCheck(close(outputFD));
