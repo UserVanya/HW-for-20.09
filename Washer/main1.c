@@ -12,6 +12,7 @@
 #define TABLE_LIMIT 10
 #define BUFF 1024
 #define SMALLBUFF 16
+#define AMOUNT_OF_DATA_IN_ONE_STRING 2
 
 void CheckForReadingError(FILE* f)
 {
@@ -294,6 +295,16 @@ int main()
 		}
         }
     }
+    FreeStrArr(lines, amountOfTypesOfWare);
+    for(int i = 0; i < amountOfTypesOfItems; ++i) FreeStrArr(tokensOne[i], AMOUNT_OF_DATA_IN_ONE_STRING);
+    free(tokensOne);
+    for(int i = 0; i < amountOfTypesOfItems; ++i) FreeStrArr(tokensTwo[i], AMOUNT_OF_DATA_IN_ONE_STRING);
+    free(tokensTwo);
+    free(typeOfItem);
+    free(typeOfWare);
+    free(amountOfItemsOfSuchType);
+    free(timeForSuchWare);
+    free(timesForSuchTypeOfItem);
     printf("process ended successfully\n");
     return 0;
 }
