@@ -46,7 +46,7 @@ void FindFile(char* currentDir, int depth, char* fileName)
     char* PathToLookFor = (char*) calloc(BUFF, sizeof(char));
     while((CurrFileInfo = readdir(address)))
     {
-        if((strcmp(CurrFileInfo->d_name, "..") == SIMILAR) || (strcmp(CurrFileInfo->d_name, ".") == SIMILAR)) continue;//CurrFileInfo = readdir(address);
+        if((strcmp(CurrFileInfo->d_name, "..") == SIMILAR) || (strcmp(CurrFileInfo->d_name, ".") == SIMILAR)) continue;
         MakeFullPath(PathToLookFor, CurrFileInfo->d_name, currentDir);
         if(!StatCheck(stat(PathToLookFor, &info), PathToLookFor)) continue;
         if(S_ISDIR(info.st_mode)) FindFile(PathToLookFor, depth - 1, fileName);
@@ -58,9 +58,6 @@ void FindFile(char* currentDir, int depth, char* fileName)
 
 int main(int argc, char *argv[])
 {  
-    int depth;
-    depth = 3;
-    FindFile("/home/ivan", depth, "main.o");
-    //depth = atoi(argv[2]);
-    //FindFile(argv[1], &depth, argv[3]);
+    int depth = atoi(argv[2]);
+    FindFile(argv[1], depth, argv[3]);
 }
